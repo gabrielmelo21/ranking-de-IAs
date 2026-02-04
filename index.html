@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Acertos - IAs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 250px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block;
+            margin: 25px auto;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .ai-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .ai-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .ai-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .acertos {
+            color: #28a745;
+        }
+
+        .erros {
+            color: #dc3545;
+        }
+
+        .percentage {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .info-message {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+            font-size: 0.9em;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .ranking-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 3px solid #e0e0e0;
+        }
+
+        .ranking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .ranking-header h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            padding: 10px 25px;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .clear-btn:hover {
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ranking-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ranking-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .ranking-position {
+            font-size: 2em;
+            font-weight: 900;
+            color: #667eea;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .ranking-item:nth-child(1) .ranking-position {
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(255, 215, 0, 0.3);
+        }
+
+        .ranking-item:nth-child(2) .ranking-position {
+            color: #c0c0c0;
+            text-shadow: 2px 2px 4px rgba(192, 192, 192, 0.3);
+        }
+
+        .ranking-item:nth-child(3) .ranking-position {
+            color: #cd7f32;
+            text-shadow: 2px 2px 4px rgba(205, 127, 50, 0.3);
+        }
+
+        .ranking-icon {
+            width: 50px; /* Ajuste o tamanho conforme necessário */
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .ranking-info {
+            flex: 1;
+        }
+
+        .ranking-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .ranking-taxa {
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .ranking-detalhes {
+            font-size: 0.95em;
+            color: #666;
+        }
+
+        .ranking-stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .ranking-stat-box {
+            text-align: center;
+        }
+
+        .ranking-stat-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        .ranking-stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .empty-ranking {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .medal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2em;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Verificador de Acertos - IAs</h1>
+
+        <div class="info-message">
+            💡 <strong>Dica:</strong> Cole o gabarito no formato "1-E, 2-D, 3-B..." e as respostas das IAs no formato mostrado no exemplo.
+        </div>
+
+        <div class="input-section">
+            <label for="gabarito">Gabarito:</label>
+            <input 
+                type="text" 
+                id="gabarito" 
+                placeholder="Ex: 1-E, 2-D, 3-B, 4-A, 5-D"
+            >
+        </div>
+
+        <div class="input-section">
+            <label for="respostas">Respostas das IAs:</label>
+            <textarea 
+                id="respostas" 
+                placeholder="Cole aqui as respostas no formato:
+Q1)
+grok D, gemini E, Kimi E, Claude E...
+Q2)
+grok D, gemini D, Kimi D..."
+            ></textarea>
+        </div>
+
+        <button onclick="verificarAcertos()">🔍 Verificar Acertos</button>
+
+        <div id="resultados" class="results hidden"></div>
+
+        <div class="ranking-section">
+            <div class="ranking-header">
+                <h2>🏆 Ranking Geral</h2>
+                <button class="clear-btn" onclick="limparRanking()">🗑️ Limpar Ranking</button>
+            </div>
+            <div id="ranking" class="ranking-list"></div>
+        </div>
+    </div>
+
+    <script>
+
+ 
+
+
+
+
+
+
+        // Ícones para cada IA
+        const iconsIA = {
+            'Grok': 'assets/grok.png',
+            'Gemini': 'assets/gemini.png',
+            'Kimi': 'assets/kimi.png',
+            'Claude': 'assets/claude.png',
+            'Deep': 'assets/deepseek.png',
+            'Gpt': 'assets/chatgpt.png',
+            'Qwen': 'assets/qwen.png',
+            'Default': 'assets/gemini.png'
+        };
+
+        // Carregar ranking ao iniciar
+        window.onload = function() {
+            atualizarRanking();
+        };
+
+        function getIconeIA(nome) {
+            // Normalizar nome para buscar ícone
+            const nomeNormalizado = nome.toLowerCase();
+            for (let key in iconsIA) {
+                if (nomeNormalizado.includes(key.toLowerCase())) {
+                    return iconsIA[key];
+                }
+            }
+            return iconsIA['Default']; // Ícone padrão
+        }
+
+        function salvarNoRanking(ias) {
+            // Carregar ranking atual
+            let ranking = JSON.parse(localStorage.getItem('rankingIAs') || '{}');
+
+            // Atualizar dados de cada IA
+            Object.entries(ias).forEach(([nome, dados]) => {
+                if (!ranking[nome]) {
+                    ranking[nome] = {
+                        totalAcertos: 0,
+                        totalErros: 0,
+                        totalQuestoes: 0
+                    };
+                }
+
+                ranking[nome].totalAcertos += dados.acertos;
+                ranking[nome].totalErros += dados.erros;
+                ranking[nome].totalQuestoes += (dados.acertos + dados.erros);
+            });
+
+            // Salvar no localStorage
+            localStorage.setItem('rankingIAs', JSON.stringify(ranking));
+            
+            // Atualizar exibição do ranking
+            atualizarRanking();
+        }
+
+        function atualizarRanking() {
+            const rankingDiv = document.getElementById('ranking');
+            const ranking = JSON.parse(localStorage.getItem('rankingIAs') || '{}');
+
+            if (Object.keys(ranking).length === 0) {
+                rankingDiv.innerHTML = '<div class="empty-ranking">Nenhum dado no ranking ainda. Faça uma verificação para começar!</div>';
+                return;
+            }
+
+            // Converter para array e ordenar por taxa de acerto
+            const rankingArray = Object.entries(ranking).map(([nome, dados]) => {
+                const taxa = dados.totalQuestoes > 0 
+                    ? (dados.totalAcertos / dados.totalQuestoes) * 100 
+                    : 0;
+                return {
+                    nome,
+                    ...dados,
+                    taxa
+                };
+            }).sort((a, b) => b.taxa - a.taxa);
+
+            // Gerar HTML do ranking
+            let html = '';
+            rankingArray.forEach((ia, index) => {
+                const posicao = index + 1;
+                const icone = getIconeIA(ia.nome);
+                const medalha = posicao === 1 ? '🥇' : posicao === 2 ? '🥈' : posicao === 3 ? '🥉' : '';
+
+                html += `
+                    <div class="ranking-item">
+                        ${medalha ? `<div class="medal">${medalha}</div>` : ''}
+                        <div class="ranking-position">#${posicao}</div>
+                        <picture>
+                            <source srcset="${icone}" type="image/png">
+                            <img src="${icone}" alt="${ia.nome}" class="ranking-icon">
+                        </picture>
+                        <div class="ranking-info">
+                            <div class="ranking-name">${ia.nome}</div>
+                            <div class="ranking-taxa">Taxa de acerto: ${ia.taxa.toFixed(1)}%</div>
+                            <div class="ranking-detalhes">
+                                Total de questões respondidas: ${ia.totalQuestoes}
+                            </div>
+                        </div>
+                        <div class="ranking-stats">
+                            <div class="ranking-stat-box">
+                                <div class="ranking-stat-label">Acertos</div>
+                                <div class="ranking-stat-value acertos">${ia.totalAcertos}</div>
+                            </div>
+                            <div class="ranking-stat-box">
+                                <div class="ranking-stat-label">Erros</div>
+                                <div class="ranking-stat-value erros">${ia.totalErros}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            rankingDiv.innerHTML = html;
+        }
+
+        function limparRanking() {
+            if (confirm('Tem certeza que deseja limpar todo o ranking? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('rankingIAs');
+                atualizarRanking();
+            }
+        }
+
+        function verificarAcertos() {
+            const gabaritoInput = document.getElementById('gabarito').value.trim();
+            const respostasInput = document.getElementById('respostas').value.trim();
+            const resultadosDiv = document.getElementById('resultados');
+
+            // Limpar resultados anteriores
+            resultadosDiv.innerHTML = '';
+            resultadosDiv.classList.add('hidden');
+
+            // Validação
+            if (!gabaritoInput || !respostasInput) {
+                resultadosDiv.innerHTML = '<div class="error-message">⚠️ Por favor, preencha o gabarito e as respostas das IAs.</div>';
+                resultadosDiv.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // Processar gabarito
+                const gabarito = {};
+                const gabaritoItems = gabaritoInput.split(',').map(item => item.trim());
+                
+                gabaritoItems.forEach(item => {
+                    const match = item.match(/(\d+)\s*-\s*([A-Ea-e])/);
+                    if (match) {
+                        gabarito[match[1]] = match[2].toUpperCase();
+                    }
+                });
+
+                if (Object.keys(gabarito).length === 0) {
+                    throw new Error('Gabarito inválido. Use o formato: 1-E, 2-D, 3-B...');
+                }
+
+                // Processar respostas
+                const ias = {};
+                const linhas = respostasInput.split('\n');
+                let questaoAtual = null;
+
+                linhas.forEach(linha => {
+                    linha = linha.trim();
+                    
+                    // Detectar questão
+                    const questaoMatch = linha.match(/Q(\d+)\)/i);
+                    if (questaoMatch) {
+                        questaoAtual = questaoMatch[1];
+                        return;
+                    }
+
+                    // Processar respostas da questão
+                    if (questaoAtual && linha) {
+                        const respostas = linha.split(',').map(r => r.trim());
+                        
+                        respostas.forEach(resposta => {
+                            const match = resposta.match(/^(.+?)\s+([A-Ea-e])$/);
+                            if (match) {
+                                const nomeIA = match[1].trim();
+                                const respostaIA = match[2].toUpperCase();
+                                
+                                // Normalizar nome da IA (case insensitive)
+                                const nomeNormalizado = nomeIA.charAt(0).toUpperCase() + nomeIA.slice(1).toLowerCase();
+                                
+                                if (!ias[nomeNormalizado]) {
+                                    ias[nomeNormalizado] = {
+                                        acertos: 0,
+                                        erros: 0,
+                                        respostas: {}
+                                    };
+                                }
+                                
+                                ias[nomeNormalizado].respostas[questaoAtual] = respostaIA;
+                                
+                                // Verificar acerto/erro
+                                if (gabarito[questaoAtual] === respostaIA) {
+                                    ias[nomeNormalizado].acertos++;
+                                } else {
+                                    ias[nomeNormalizado].erros++;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                if (Object.keys(ias).length === 0) {
+                    throw new Error('Nenhuma resposta de IA foi encontrada. Verifique o formato.');
+                }
+
+                // Salvar no ranking
+                salvarNoRanking(ias);
+
+                // Gerar resultados
+                let html = '<h2 style="color: #333; margin-bottom: 20px;">Resultados desta verificação:</h2>';
+                html += '<div class="results-grid">';
+
+                // Ordenar por número de acertos (decrescente)
+                const iasOrdenadas = Object.entries(ias).sort((a, b) => b[1].acertos - a[1].acertos);
+
+                iasOrdenadas.forEach(([nome, dados]) => {
+                    const total = dados.acertos + dados.erros;
+                    const percentual = total > 0 ? ((dados.acertos / total) * 100).toFixed(1) : 0;
+                    
+                    html += `
+                        <div class="ai-card">
+                            <div class="ai-name">${nome}</div>
+                            <div class="stats">
+                                <div class="stat">
+                                    <div class="stat-label">Acertos</div>
+                                    <div class="stat-value acertos">${dados.acertos}</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">Erros</div>
+                                    <div class="stat-value erros">${dados.erros}</div>
+                                </div>
+                            </div>
+                            <div class="percentage">${percentual}% de acerto</div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                resultadosDiv.innerHTML = html;
+                resultadosDiv.classList.remove('hidden');
+
+            } catch (error) {
+                resultadosDiv.innerHTML = `<div class="error-message">❌ Erro: ${error.message}</div>`;
+                resultadosDiv.classList.remove('hidden');
+            }
+        }
+
+        // Permitir verificar com Enter no campo de gabarito
+        document.getElementById('gabarito').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verificarAcertos();
+            }
+        });
+
+
+
+
+    </script>
+</body>
+</html>
